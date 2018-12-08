@@ -1,4 +1,22 @@
+import win32gui
 import csv
+
+
+# Get handles of all visible windows and store in dictionary with
+# their names as the keys.
+def get_windows():
+
+    def callback(hwnd, hwnd_dict):
+
+        if win32gui.IsWindowVisible(hwnd):
+            hwnd_dict[win32gui.GetWindowText(hwnd)] = hwnd
+        return True
+
+    hwnd_dict = {}
+
+    win32gui.EnumWindows(callback, hwnd_dict)
+
+    return hwnd_dict
 
 
 # Reads csv file line by line using it to create a dictionary of macros
@@ -20,8 +38,3 @@ def macro_dict(filePath):
             csvdict[row[0]] = row[1]
 
     return csvdict
-
-
-if __name__ == '__main__':
-
-    d = macro_dict('macros.csv')
