@@ -38,3 +38,49 @@ def macro_dict(filePath):
             csvdict[row[0]] = row[1]
 
     return csvdict
+
+
+# Return value from dictionary selected by user
+def select_from_dict(selections, print_selections=True):
+
+    if all([isinstance(k, str) for k in selections.keys()]):
+        key_type = "str"
+    elif all([isinstance(k, int) for k in selections.keys()]):
+        key_type = "int"
+    else:
+        raise TypeError(
+            "Dictionary must be solely composed of strings xor integers.")
+
+    if print_selections:
+
+        for k in selections.keys():
+            print("{:20}: {}".format(k, selections[k]))
+
+    ret_val = None
+
+    while ret_val is None:
+
+        choice = input("> ")
+
+        if key_type == "int":
+
+            try:
+                choice = int(choice)
+            except ValueError:
+                print("Please enter an integer.")
+                continue
+
+        try:
+            ret_val = selections[choice]
+        except KeyError:
+            print("Invalid selection.")
+            ret_val = None
+            continue
+
+    return ret_val
+
+
+if __name__ == '__main__':
+
+    macros = macro_dict('./macros.csv')
+    windows = get_windows()
