@@ -1,5 +1,6 @@
 import windowwriter
 import sys
+from pywinauto import application
 
 
 # Return value from dictionary selected by user
@@ -53,6 +54,18 @@ def show_dict(show, sorted=False):
         print("{:15}:\t{}".format(k, show[k]))
 
 
+def numbered_dict_keys(to_number):
+
+    numbered = {}
+    count = 1
+
+    for k in to_number.keys():
+        numbered[count] = k
+        count += 1
+
+    return numbered
+
+
 def main():
 
     help_msgs = {"help": "Display this message.",
@@ -68,32 +81,48 @@ def main():
 
     quitted = False
 
+    if len(sys.argv) != 2:
+        print("Invalid number of arguments.")
+        sys.exit(0)
+
     macros = windowwriter.macro_dict(sys.argv[1])
     macro_keys = list(macros.keys())
 
     windows = windowwriter.get_windows()
-    current_window = None
+    windows_numbered = numbered_dict_keys(windows)
+    current_hwnd = None
+    app = None
 
     while not quitted:
 
         cmd = input("> ")
 
         if cmd in macro_keys:
-            raise NotImplementedError
+
+            if app is None:
+                print("No window selected. Type 'help' for more details.")
+            else:
+                dlg = app.top_window()
+                dlg.type_keys(macros[cmd], with_spaces=True)
 
         elif cmd == "help":
             print(help_str)
             show_dict(help_msgs)
 
         elif cmd == "window":
-            raise NotImplementedError
+            print("Select a window:\n")
+            key = select_from_dict(windows_numbered)
+            current_hwnd = windows[key]
+
+            app = application.Application().connect(handle=current_hwnd)
 
         elif cmd == "macros":
             show_dict(macros)
 
         elif cmd == "refresh":
             windows = windowwriter.get_windows()
-            print("Windows list updated.")
+            windows_numbered = numbered_dict_keys(windows)
+            print("Window list updated.")
 
         elif cmd == "quit":
             quitted = True
