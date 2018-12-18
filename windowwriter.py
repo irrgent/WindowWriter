@@ -2,6 +2,10 @@ import win32gui
 import csv
 
 
+class WindowNotFoundError(Exception):
+    pass
+
+
 # Get handles of all visible windows and store in dictionary with
 # their names as the keys.
 def get_windows():
@@ -44,7 +48,9 @@ def send_input(wsh, win_title, string):
 
     replace = {'\n': '{ENTER}', '\t': '{TAB}', '+': '{+}'}
 
-    wsh.AppActivate(win_title)
+    if not wsh.AppActivate(win_title):
+        raise WindowNotFoundError(
+            "Could not activate window {}.".format(win_title))
 
     for key in list(string):
         if key in replace:
