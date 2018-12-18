@@ -40,6 +40,19 @@ def macro_dict(filePath):
     return csvdict
 
 
+def send_input(wsh, win_title, string):
+
+    replace = {'\n': '{ENTER}', '\t': '{TAB}', '+': '{+}'}
+
+    wsh.AppActivate(win_title)
+
+    for key in list(string):
+        if key in replace:
+            wsh.SendKeys(replace[key])
+        else:
+            wsh.SendKeys(key)
+
+
 if __name__ == '__main__':
 
     macros = macro_dict('./macros.csv')
