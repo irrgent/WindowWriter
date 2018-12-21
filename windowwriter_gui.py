@@ -4,6 +4,21 @@ import windowwriter_cli
 import win32com.client as comclt
 
 
+class MenuBar(tk.Menu):
+
+    def __init__(self, parent, *args, **kwargs):
+
+        tk.Menu.__init__(self, parent, *args, **kwargs)
+        self.parent = parent
+
+        self.file_menu = tk.Menu(self)
+        self.add_cascade(label="File", menu=self.file_menu)
+        self.file_menu.add_command(label="Exit", command=parent.quit)
+
+        self.edit_menu = tk.Menu(self)
+        self.add_cascade(label="Edit", menu=self.edit_menu)
+
+
 class MacroListbox(tk.Frame):
 
     def __init__(self, parent, macro_dict, *args, **kwargs):
@@ -41,18 +56,34 @@ class MacroListbox(tk.Frame):
             print("Selected {}.".format(value))
 
 
+class MainApplication(tk.Frame):
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+
+        # TODO - allow different paths for macros.csv
+        self.list_box = MacroListbox(
+            self, windowwriter.macro_dict("./macros.csv"))
+
+        self.list_box.pack(side=tk.TOP)
+        self.cli_add_windows()
+
+    def cli_add_windows(self):
+
+        windows = windowwriter.get_windows()
+        numbered = windowwriter_cli.numbered_dict_keys(windows)
+        win_title = windowwriter_cli.select_from_dict(numbered)
+
+        self.list_box.connect_window(win_title)
+
+
 def main():
 
-    macro_dict = windowwriter.macro_dict("./macros.csv")
-    windows = windowwriter.get_windows()
-
-    numbered = windowwriter_cli.numbered_dict_keys(windows)
-    win_title = windowwriter_cli.select_from_dict(numbered)
-
     root = tk.Tk()
-    lb = MacroListbox(root, macro_dict)
-    lb.connect_window(win_title)
-    lb.pack()
+    root.wm_attributes("-topmost", 1)
+    main_app = MainApplication(root)
+    app_menu = MenuBar(root)
+    root.config(menu=app_menu)
+    main_app.pack()
     root.mainloop()
 
 
