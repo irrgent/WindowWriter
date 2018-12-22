@@ -4,6 +4,14 @@ import windowwriter_cli
 import win32com.client as comclt
 
 
+class WindowMenu(tk.OptionMenu):
+
+    def __init__(self, parent, *args, **kwargs):
+
+        tk.OptionMenu.__init__(self, parent, *args, **kwargs)
+        self.options = windowwriter.get_window_names()
+
+
 class MenuBar(tk.Menu):
 
     def __init__(self, parent, *args, **kwargs):
@@ -19,20 +27,19 @@ class MenuBar(tk.Menu):
         self.add_cascade(label="Edit", menu=self.edit_menu)
 
 
-class MacroListbox(tk.Frame):
+# TODO: Modify class to inherit from tk.ListBox rather than tk.Frame
+class MacroListbox(tk.Listbox):
 
-    def __init__(self, parent, macro_dict, *args, **kwargs):
+    def __init__(self, parent, macro_dict, selectmode=tk.SINGLE, *args, **kwargs):
 
-        tk.Frame.__init__(self, parent, *args, **kwargs)
+        tk.Listbox.__init__(self, parent, *args, **kwargs)
 
         self._macro_dict = macro_dict
         self.win_title = None
-        self._listbox = tk.Listbox(self, selectmode=tk.SINGLE)
-        self._listbox.bind("<<ListboxSelect>>", self.macro_select)
-        self._listbox.pack()
+        self.bind("<<ListboxSelect>>", self.macro_select)
 
         for _ in self._macro_dict.keys():
-            self._listbox.insert(tk.END, _)
+            self.insert(tk.END, _)
 
     def update_macros(self, new_dict):
         raise NotImplementedError
