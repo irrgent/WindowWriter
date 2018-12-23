@@ -23,6 +23,21 @@ def get_windows():
     return hwnd_dict
 
 
+def get_window_names():
+
+    def callback(hwnd, lst):
+
+        if win32gui.IsWindowVisible(hwnd):
+            lst.append(win32gui.GetWindowText(hwnd))
+        return True
+
+    window_lst = []
+
+    win32gui.EnumWindows(callback, window_lst)
+
+    return window_lst
+
+
 # Reads csv file line by line using it to create a dictionary of macros
 def macro_dict(filePath):
 

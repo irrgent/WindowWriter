@@ -4,20 +4,13 @@ import windowwriter_cli
 import win32com.client as comclt
 
 
-class WindowMenu(tk.OptionMenu):
-
-    def __init__(self, parent, *args, **kwargs):
-
-        tk.OptionMenu.__init__(self, parent, *args, **kwargs)
-        self.options = windowwriter.get_window_names()
-
-
 class MenuBar(tk.Menu):
 
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent, window, *args, **kwargs):
 
         tk.Menu.__init__(self, parent, *args, **kwargs)
         self.parent = parent
+        self.window = window
 
         self.file_menu = tk.Menu(self)
         self.add_cascade(label="File", menu=self.file_menu)
@@ -27,10 +20,9 @@ class MenuBar(tk.Menu):
         self.add_cascade(label="Edit", menu=self.edit_menu)
 
 
-# TODO: Modify class to inherit from tk.ListBox rather than tk.Frame
 class MacroListbox(tk.Listbox):
 
-    def __init__(self, parent, macro_dict, selectmode=tk.SINGLE, *args, **kwargs):
+    def __init__(self, parent, macro_dict, *args, **kwargs):
 
         tk.Listbox.__init__(self, parent, *args, **kwargs)
 
@@ -67,12 +59,15 @@ class MainApplication(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
 
+        self.parent = parent
         # TODO - allow different paths for macros.csv
         self.list_box = MacroListbox(
-            self, windowwriter.macro_dict("./macros.csv"))
+            self, windowwriter.macro_dict("./macros.csv"), selectmode=tk.SINGLE)
+        self.create_win_menu()
 
         self.list_box.pack(side=tk.TOP)
-        self.cli_add_windows()
+        # self.cli_add_windows()
+        self.win_menu.pack(side=tk.TOP)
 
     def cli_add_windows(self):
 
@@ -82,13 +77,24 @@ class MainApplication(tk.Frame):
 
         self.list_box.connect_window(win_title)
 
+    def create_win_menu(self):
+
+        self.options = windowwriter.get_window_names()
+        self.selected = tk.StringVar()
+        self.selected.set(self.options[0])
+        self.selected.trace("w", self.select_win)
+        self.win_menu = tk.OptionMenu(self, self.selected, *self.options)
+
+    def select_win(self, *args):
+        self.list_box.connect_window(self.selected.get())
+
 
 def main():
 
     root = tk.Tk()
     root.wm_attributes("-topmost", 1)
     main_app = MainApplication(root)
-    app_menu = MenuBar(root)
+    app_menu = MenuBar(root, main_app)
     root.config(menu=app_menu)
     main_app.pack()
     root.mainloop()
