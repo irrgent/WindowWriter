@@ -1,1 +1,1 @@
-pywinauto
+pywin32

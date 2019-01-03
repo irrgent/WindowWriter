@@ -6,23 +6,7 @@ class WindowNotFoundError(Exception):
     pass
 
 
-# Get handles of all visible windows and store in dictionary with
-# their names as the keys.
-def get_windows():
-
-    def callback(hwnd, hwnd_dict):
-
-        if win32gui.IsWindowVisible(hwnd):
-            hwnd_dict[win32gui.GetWindowText(hwnd)] = hwnd
-        return True
-
-    hwnd_dict = {}
-
-    win32gui.EnumWindows(callback, hwnd_dict)
-
-    return hwnd_dict
-
-
+# Return list of titles of all visible windows.
 def get_window_names():
 
     def callback(hwnd, lst):
