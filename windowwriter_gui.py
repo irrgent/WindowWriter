@@ -46,7 +46,17 @@ class MacroListbox(tk.Listbox):
     def macro_select(self, event):
 
         if self.win_title is None:
-            print("No window selected.")
+
+            win = tk.Toplevel()
+            win.wm_attributes("-topmost", 1)
+            win.wm_title("No window selected.")
+            win_text = "Please select a window using the drop down menu."
+            win_label = tk.Label(win, text=win_text)
+            win_button = tk.Button(win, text='OK', command=win.destroy)
+
+            win_label.pack(side=tk.TOP)
+            win_button.pack(side=tk.BOTTOM)
+
         else:
             wdg = event.widget
             idx = int(wdg.curselection()[0])
