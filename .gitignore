@@ -1,5 +1,6 @@
 *~
 *.csv
+*.html
 __pycache__
 .stignore
 .stfolder
