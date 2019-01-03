@@ -13,6 +13,8 @@ class MenuBar(tk.Menu):
         self.file_menu = tk.Menu(self)
         self.add_cascade(label="File", menu=self.file_menu)
         self.file_menu.add_command(label="Exit", command=parent.quit)
+        self.file_menu.add_command(
+            label="Refresh windows", command=parent.refresh_windows)
 
         self.edit_menu = tk.Menu(self)
         self.add_cascade(label="Edit", menu=self.edit_menu)
@@ -37,6 +39,9 @@ class MacroListbox(tk.Listbox):
     def connect_window(self, title):
         self.win_title = title
         self._wsh = comclt.Dispatch("WScript.Shell")
+
+    def disconnect_window(self):
+        self.win_title = None
 
     def macro_select(self, event):
 
@@ -74,22 +79,21 @@ class MainApplication(tk.Tk):
     def create_win_menu(self):
 
         self.options = windowwriter.get_window_names()
-        self.selected = tk.StringVar()
-        self.selected.set(self.options[0])
-        self.selected.trace("w", self.select_win)
-        self.win_menu = tk.OptionMenu(self.frame, self.selected, *self.options)
+        self.selected_var = tk.StringVar()
+        self.selected_var.set("Select window:")
+        self.selected_var.trace_id = self.selected_var.trace("w", self.select_win)
+        self.win_menu = tk.OptionMenu(
+            self.frame, self.selected_var, *self.options)
 
     def select_win(self, *args):
-        self.list_box.connect_window(self.selected.get())
+        self.list_box.connect_window(self.selected_var.get())
 
     def refresh_windows(self):
 
-        self.options = windowwriter.get_window_names()
-        menu = self.window_menu["menu"]
-
-        for o in self.options:
-            menu.add_command(label=o)
-        self.selection.set(self.options[0])
+        self.win_menu.pack_forget()
+        self.list_box.disconnect_window()
+        self.create_win_menu()
+        self.win_menu.pack(side=tk.TOP)
 
 
 def main():
