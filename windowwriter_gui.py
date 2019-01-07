@@ -109,10 +109,18 @@ class MainApplication(tk.Tk):
         self.config(menu=self.top_menu)
 
         self.frame = tk.Frame(self)
+
+        self.list_scroll = tk.Scrollbar(self.frame)
+        self.list_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+
         # TODO - allow different paths for macros.csv
         self.list_box = MacroListbox(
             self.frame,
-            windowwriter.macro_dict("./macros.csv"), selectmode=tk.SINGLE)
+            windowwriter.macro_dict("./macros.csv"), selectmode=tk.SINGLE,
+            yscrollcommand=self.list_scroll.set)
+
+        self.list_scroll.config(command=self.list_box.yview)
+
         self.create_win_menu()
 
         self.frame.pack()
