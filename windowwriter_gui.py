@@ -36,7 +36,7 @@ class MacroListbox(tk.Listbox):
     for sending keyboard input to a window.
     """
 
-    def __init__(self, parent, macro_dict, *args, **kwargs):
+    def __init__(self, parent, macro_dict=None, *args, **kwargs):
         """
         parent - The parent tk.Frame instance
 
@@ -51,9 +51,14 @@ class MacroListbox(tk.Listbox):
         self.win_title = None
         self.bind("<<ListboxSelect>>", self.macro_select)
 
-        # Insert each of the macro keys into the listbox.
-        for _ in self._macro_dict:
-            self.insert(tk.END, _)
+        # Insert each of the macro keys into the listbox if a dictionary
+        # was provided.
+        if self._macro_dict is not None:
+            for _ in self._macro_dict:
+                self.insert(tk.END, _)
+        else:
+            self.insert(tk.END, "To load macros use")
+            self.insert(tk.END, "file -> open")
 
     # Repopulate listbox with new macros.
     def update_macros(self, new_dict):
@@ -75,8 +80,10 @@ class MacroListbox(tk.Listbox):
 
     def macro_select(self, event):
 
-        # Prompt user to select window if none selected.
-        if self.win_title is None:
+        if self._macro_dict is None:
+            ErrorPopup("No macros loaded.", "Error")
+
+        elif self.win_title is None:
             win_text = "Please select a window using the drop down menu."
             ErrorPopup(win_text, "No window selected.")
 
@@ -113,10 +120,9 @@ class MainApplication(tk.Tk):
         self.list_scroll = tk.Scrollbar(self.frame)
         self.list_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
-        # TODO - allow different paths for macros.csv
         self.list_box = MacroListbox(
             self.frame,
-            windowwriter.macro_dict("./macros.csv"), selectmode=tk.SINGLE,
+            selectmode=tk.SINGLE,
             yscrollcommand=self.list_scroll.set)
 
         self.list_scroll.config(command=self.list_box.yview)
