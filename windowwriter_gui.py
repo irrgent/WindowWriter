@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import filedialog
 import windowwriter
 import win32com.client as comclt
 
@@ -18,8 +19,11 @@ class MenuBar(tk.Menu):
         self.file_menu = tk.Menu(self)
         self.add_cascade(label="File", menu=self.file_menu)
         self.file_menu.add_command(label="Exit", command=parent.quit)
+
         self.file_menu.add_command(
             label="Refresh windows", command=parent.refresh_windows)
+
+        self.file_menu.add_command(label="Open", command=parent.open_macros)
 
         self.edit_menu = tk.Menu(self)
         self.add_cascade(label="Edit", menu=self.edit_menu)
@@ -48,15 +52,20 @@ class MacroListbox(tk.Listbox):
         self.bind("<<ListboxSelect>>", self.macro_select)
 
         # Insert each of the macro keys into the listbox.
-        for _ in self._macro_dict.keys():
+        for _ in self._macro_dict:
             self.insert(tk.END, _)
 
     # Will allow for reloading the macros (not yet implemented)
     def update_macros(self, new_dict):
-        raise NotImplementedError
+
+        self.delete(0, self.size())
+        self._macro_dict = new_dict
+
+        for _ in new_dict:
+            self.insert(tk.END, _)
 
     # 'Connect' to a window meaning set the title of the target
-    # window and create a WScript.Shell instance.
+    # window and create a WScript.Shell
     def connect_window(self, title):
         self.win_title = title
         self._wsh = comclt.Dispatch("WScript.Shell")
@@ -146,12 +155,35 @@ class MainApplication(tk.Tk):
         self.create_win_menu()
         self.win_menu.pack(side=tk.TOP)
 
+    # Open a new csv file containing macros, called from menu.
+    def open_macros(self):
+        name = filedialog.askopenfilename(
+            title="Open file",
+            filetypes=(("csv files", "*.csv"), ("all files", "*.*")))
+
+        try:
+            new_macros = windowwriter.macro_dict(name)
+        except ValueError as e:
+
+            win = tk.Toplevel()
+            win.wm_attributes("-topmost", 1)
+            win.wm_title("Error opening file.")
+            win_text = e
+            win_label = tk.Label(win, text=win_text)
+            win_button = tk.Button(win, text='OK', command=win.destroy)
+
+            win_label.pack(side=tk.TOP)
+            win_button.pack(side=tk.BOTTOM)
+
+            return
+
+        self.list_box.update_macros(new_macros)
+
 
 def main():
 
     root = MainApplication()
     root.wm_attributes("-topmost", 1)
-
     root.mainloop()
 
 
