@@ -4,3 +4,4 @@
 __pycache__
 .stignore
 .stfolder
+gencsv.py
