@@ -55,7 +55,7 @@ class MacroListbox(tk.Listbox):
         for _ in self._macro_dict:
             self.insert(tk.END, _)
 
-    # Will allow for reloading the macros (not yet implemented)
+    # Repopulate listbox with new macros.
     def update_macros(self, new_dict):
 
         self.delete(0, self.size())
@@ -77,16 +77,8 @@ class MacroListbox(tk.Listbox):
 
         # Prompt user to select window if none selected.
         if self.win_title is None:
-
-            win = tk.Toplevel()
-            win.wm_attributes("-topmost", 1)
-            win.wm_title("No window selected.")
             win_text = "Please select a window using the drop down menu."
-            win_label = tk.Label(win, text=win_text)
-            win_button = tk.Button(win, text='OK', command=win.destroy)
-
-            win_label.pack(side=tk.TOP)
-            win_button.pack(side=tk.BOTTOM)
+            ErrorPopup(win_text, "No window selected.")
 
         else:
 
@@ -165,19 +157,24 @@ class MainApplication(tk.Tk):
             new_macros = windowwriter.macro_dict(name)
         except ValueError as e:
 
-            win = tk.Toplevel()
-            win.wm_attributes("-topmost", 1)
-            win.wm_title("Error opening file.")
-            win_text = e
-            win_label = tk.Label(win, text=win_text)
-            win_button = tk.Button(win, text='OK', command=win.destroy)
-
-            win_label.pack(side=tk.TOP)
-            win_button.pack(side=tk.BOTTOM)
-
+            ErrorPopup(e, "Error opening file.")
             return
 
         self.list_box.update_macros(new_macros)
+
+
+class ErrorPopup(tk.Toplevel):
+
+    def __init__(self, message, title, *args, **kwargs):
+        tk.Toplevel.__init__(self, *args, **kwargs)
+
+        self.wm_attributes("-topmost", 1)
+        self.wm_title(title)
+        self.lab = tk.Label(self, text=message)
+        self.button = tk.Button(self, text='OK', command=self.destroy)
+
+        self.lab.pack(side=tk.TOP)
+        self.button.pack(side=tk.BOTTOM)
 
 
 def main():
