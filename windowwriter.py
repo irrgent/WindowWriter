@@ -66,9 +66,3 @@ def send_input(wsh, win_title, hwnd, string):
             wsh.SendKeys(replace[key])
         else:
             wsh.SendKeys(key)
-
-
-if __name__ == '__main__':
-
-    macros = macro_dict('./macros.csv')
-    windows = get_windows()
