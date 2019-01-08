@@ -1,4 +1,6 @@
 import win32gui
+import win32api
+import win32con
 import csv
 
 
@@ -6,20 +8,20 @@ class WindowNotFoundError(Exception):
     pass
 
 
-# Return list of titles of all visible windows.
-def get_window_names():
+# Return dict with titles and handles of visible windows.
+def get_windows():
 
     def callback(hwnd, lst):
 
         if win32gui.IsWindowVisible(hwnd):
-            lst.append(win32gui.GetWindowText(hwnd))
+            windows[win32gui.GetWindowText(hwnd)] = hwnd
         return True
 
-    window_lst = []
+    windows = {}
 
-    win32gui.EnumWindows(callback, window_lst)
+    win32gui.EnumWindows(callback, windows)
 
-    return window_lst
+    return windows
 
 
 # Reads csv file line by line using it to create a dictionary of macros
@@ -43,13 +45,21 @@ def macro_dict(filePath):
     return csvdict
 
 
-def send_input(wsh, win_title, string):
+def send_input(wsh, win_title, hwnd, string):
 
     replace = {'\n': '{ENTER}', '\t': '{TAB}', '+': '{+}'}
 
+    # If window is minimized restore it.
+    if win32gui.IsIconic(hwnd):
+        if not win32gui.ShowWindow(hwnd, win32con.SW_RESTORE):
+            raise WindowNotFoundError(
+                "ShowWindow returned 0 for window {} with hwnd {}.".format(
+                    win_title, hwnd))
+
     if not wsh.AppActivate(win_title):
         raise WindowNotFoundError(
-            "Could not activate window {}.".format(win_title))
+            "Could not activate window {} with hwnd {}.".format(
+                win_title, hwnd))
 
     for key in list(string):
         if key in replace:

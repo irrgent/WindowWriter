@@ -48,7 +48,10 @@ class MacroListbox(tk.Listbox):
         tk.Listbox.__init__(self, parent, *args, **kwargs)
 
         self._macro_dict = macro_dict
-        self.win_title = None
+
+        # win_info will be updated by connect_window() which is called
+        # when the user selects a window from the menu created in MainApplication
+        self.win_info = None
         self.bind("<<ListboxSelect>>", self.macro_select)
 
         # Insert each of the macro keys into the listbox if a dictionary
@@ -71,19 +74,19 @@ class MacroListbox(tk.Listbox):
 
     # 'Connect' to a window meaning set the title of the target
     # window and create a WScript.Shell
-    def connect_window(self, title):
-        self.win_title = title
+    def connect_window(self, title, hwnd):
+        self.win_info = (title, hwnd)
         self._wsh = comclt.Dispatch("WScript.Shell")
 
     def disconnect_window(self):
-        self.win_title = None
+        self.win_info = None
 
     def macro_select(self, event):
 
         if self._macro_dict is None:
             ErrorPopup("No macros loaded.", "Error")
 
-        elif self.win_title is None:
+        elif self.win_info is None:
             win_text = "Please select a window using the drop down menu."
             ErrorPopup(win_text, "No window selected.")
 
@@ -96,7 +99,8 @@ class MacroListbox(tk.Listbox):
 
             # Send selected macros associated text to the
             # selected window.
-            windowwriter.send_input(self._wsh, self.win_title,
+            windowwriter.send_input(self._wsh, self.win_info[0],
+                                    self.win_info[1],
                                     self._macro_dict[value])
 
             print("Selected {}.".format(value))
@@ -137,7 +141,7 @@ class MainApplication(tk.Tk):
     # windows that the user can then select and send text to.
     def create_win_menu(self):
 
-        self.options = windowwriter.get_window_names()
+        self.options = windowwriter.get_windows()
         self.selected_var = tk.StringVar()
 
         # Default selection, will dissapear once another option is selected.
@@ -147,10 +151,11 @@ class MainApplication(tk.Tk):
         self.selected_var.trace_id = self.selected_var.trace("w", self.select_win)
 
         self.win_menu = tk.OptionMenu(
-            self.frame, self.selected_var, *self.options)
+            self.frame, self.selected_var, *list(self.options.keys()))
 
     def select_win(self, *args):
-        self.list_box.connect_window(self.selected_var.get())
+        title = self.selected_var.get()
+        self.list_box.connect_window(title, self.options[title])
 
     # Refresh window list by removing old win_menu and creating a new one
     # that will contain any newly opened windows.
