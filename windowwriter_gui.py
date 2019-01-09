@@ -91,7 +91,6 @@ class MacroListbox(tk.Listbox):
             ErrorPopup(win_text, "No window selected.")
 
         else:
-
             # Get selected Listbox item.
             wdg = event.widget
             idx = int(wdg.curselection()[0])
@@ -104,6 +103,22 @@ class MacroListbox(tk.Listbox):
                                     self._macro_dict[value])
 
             print("Selected {}.".format(value))
+
+
+class ListboxFrame(tk.Frame):
+
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.parent = parent
+
+        self.scroll_bar = tk.Scrollbar(self)
+        self.scroll_bar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.list_box = MacroListbox(self, selectmode=tk.SINGLE,
+                                     yscrollcommand=self.scroll_bar.set)
+
+        self.scroll_bar.config(command=self.list_box.yview)
+        self.list_box.pack(side=tk.TOP)
 
 
 class MainApplication(tk.Tk):
@@ -121,20 +136,11 @@ class MainApplication(tk.Tk):
 
         self.frame = tk.Frame(self)
 
-        self.list_scroll = tk.Scrollbar(self.frame)
-        self.list_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-
-        self.list_box = MacroListbox(
-            self.frame,
-            selectmode=tk.SINGLE,
-            yscrollcommand=self.list_scroll.set)
-
-        self.list_scroll.config(command=self.list_box.yview)
-
+        self.lb_frame = ListboxFrame(self.frame)
         self.create_win_menu()
 
         self.frame.pack()
-        self.list_box.pack(side=tk.TOP)
+        self.lb_frame.pack(side=tk.TOP)
         self.win_menu.pack(side=tk.TOP)
 
     # Create a tk.OptionMenu instance containing a list of currently open
@@ -155,14 +161,14 @@ class MainApplication(tk.Tk):
 
     def select_win(self, *args):
         title = self.selected_var.get()
-        self.list_box.connect_window(title, self.options[title])
+        self.lb_frame.list_box.connect_window(title, self.options[title])
 
     # Refresh window list by removing old win_menu and creating a new one
     # that will contain any newly opened windows.
     def refresh_windows(self):
 
         self.win_menu.pack_forget()
-        self.list_box.disconnect_window()
+        self.lb_frame.list_box.disconnect_window()
         self.create_win_menu()
         self.win_menu.pack(side=tk.TOP)
 
@@ -179,7 +185,7 @@ class MainApplication(tk.Tk):
             ErrorPopup(e, "Error opening file.")
             return
 
-        self.list_box.update_macros(new_macros)
+        self.lb_frame.list_box.update_macros(new_macros)
 
 
 class ErrorPopup(tk.Toplevel):
